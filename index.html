@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MONSTER'• CLAN - لوحة الأعضاء الرسمية</title>
+    <!-- استدعاء خط Cairo و FontAwesome للأيقونات -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --sidebar-bg: #1e293b;
+            --card-bg: #1e293b;
+            --accent-color: #ff6b00;
+            --accent-hover: #e05e00;
+            --text-color: #f8fafc;
+            --text-muted: #94a3b8;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --boss-color: #ec4899;
+            --leader-color: #f59e0b;
+            --co-leader-color: #3b82f6;
+            --border-color: #334155;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
+
+        /* شاشة الحظر والعقوبة المؤقتة */
+        #banScreen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #0b0f19;
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+        }
+        .ban-box {
+            background-color: var(--card-bg);
+            border: 2px solid var(--danger-color);
+            border-radius: 15px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 0 30px rgba(239, 68, 68, 0.3);
+        }
+        .ban-box i { font-size: 60px; color: var(--danger-color); margin-bottom: 20px; }
+        .ban-box h2 { font-size: 24px; color: var(--danger-color); margin-bottom: 10px; font-weight: 900; }
+        .ban-box p { color: var(--text-muted); font-size: 15px; margin-bottom: 20px; line-height: 1.6; }
+        .timer-badge {
+            background-color: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: var(--danger-color);
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: 700;
+            display: inline-block;
+        }
+
+        /* شريط التنقل الجانبي */
+        aside {
+            width: 280px;
+            background-color: var(--sidebar-bg);
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            right: 0;
+            z-index: 100;
+        }
+
+        .sidebar-brand {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-brand img {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--accent-color);
+            box-shadow: 0 0 10px rgba(255, 107, 0, 0.4);
+        }
+
+        .sidebar-brand h2 { font-size: 16px; font-weight: 900; letter-spacing: 0.5px; color: #ff8533; }
+
+        .sidebar-menu { padding: 20px 10px; flex: 1; }
+        .menu-category { font-size: 12px; color: var(--text-muted); margin: 15px 10px 10px; font-weight: 600; text-transform: uppercase; }
+
+        .sidebar-menu li a {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 15px;
+            border-radius: 8px;
+            color: var(--text-muted);
+            font-size: 15px;
+            font-weight: 600;
+            transition: var(--transition);
+            margin-bottom: 5px;
+            cursor: pointer;
+        }
+
+        .sidebar-menu li.active a, .sidebar-menu li a:hover {
+            background-color: var(--accent-color);
+            color: #fff;
+            transform: translateX(-5px);
+        }
+
+        .sidebar-menu li a i { font-size: 18px; width: 25px; text-align: center; }
+
+        /* المحتوى الرئيسي */
+        .main-content {
+            flex: 1;
+            margin-right: 280px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* الشريط العلوي */
+        header {
+            height: 80px;
+            background-color: var(--sidebar-bg);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            position: sticky;
+            top: 0;
+            z-index: 99;
+        }
+
+        .header-search {
+            display: flex;
+            align-items: center;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 15px;
+            width: 300px;
+            gap: 10px;
+        }
+
+        .header-search input {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            outline: none;
+            width: 100%;
+            font-size: 14px;
+        }
+
+        .header-search i { color: var(--text-muted); }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-profile img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--accent-color);
+            box-shadow: 0 0 10px rgba(255, 107, 0, 0.4);
+        }
+
+        .user-info h4 { font-size: 15px; font-weight: 700; }
+
+        /* حاوية محتوى الصفحة */
+        .container { padding: 30px; flex: 1; }
+
+        .content-section { display: none; }
+        .content-section.active-section {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* بطاقات الإحصائيات */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: var(--transition);
+        }
+
+        .stat-card:hover { transform: translateY(-5px); border-color: var(--accent-color); }
+        .stat-info h3 { font-size: 13px; color: var(--text-muted); margin-bottom: 5px; }
+        .stat-info .number { font-size: 22px; font-weight: 900; }
+        
+        .stat-icon {
+            width: 55px; height: 55px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; font-size: 22px;
+        }
+        .stat-icon.boss { background-color: rgba(236, 72, 153, 0.15); color: var(--boss-color); }
+        .stat-icon.leader { background-color: rgba(245, 158, 11, 0.15); color: var(--leader-color); }
+        .stat-icon.coleader { background-color: rgba(59, 130, 246, 0.15); color: var(--co-leader-color); }
+        .stat-icon.member { background-color: rgba(16, 185, 129, 0.15); color: var(--success-color); }
+
+        /* الجداول والبطاقات */
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .card-header h3 { font-size: 18px; font-weight: 700; }
+
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; text-align: right; }
+        th, td { padding: 14px 15px; border-bottom: 1px solid var(--border-color); font-size: 14px; }
+        th { color: var(--text-muted); background-color: rgba(255, 255, 255, 0.02); font-weight: 600; }
+
+        /* شارات الرتب */
+        .rank-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .rank-badge.boss { background-color: rgba(236, 72, 153, 0.15); color: var(--boss-color); border: 1px solid rgba(236, 72, 153, 0.3); }
+        .rank-badge.leader { background-color: rgba(245, 158, 11, 0.15); color: var(--leader-color); border: 1px solid rgba(245, 158, 11, 0.3); }
+        .rank-badge.coleader { background-color: rgba(59, 130, 246, 0.15); color: var(--co-leader-color); border: 1px solid rgba(59, 130, 246, 0.3); }
+        .rank-badge.member { background-color: rgba(16, 185, 129, 0.15); color: var(--success-color); border: 1px solid rgba(16, 185, 129, 0.3); }
+
+        /* أزرار الإجراءات والأدمن المحمية */
+        .action-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+        
+        .btn-action-edit {
+            background-color: rgba(59, 130, 246, 0.15);
+            color: var(--co-leader-color);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            padding: 5px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: var(--transition);
+        }
+        .btn-action-edit:hover { background-color: var(--co-leader-color); color: #fff; }
+
+        .btn-action-ban {
+            background-color: rgba(245, 158, 11, 0.15);
+            color: var(--warning-color);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            padding: 5px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: var(--transition);
+        }
+        .btn-action-ban:hover { background-color: var(--warning-color); color: #0f172a; }
+
+        .btn-action-delete {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: var(--danger-color);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            padding: 5px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: var(--transition);
+        }
+        .btn-action-delete:hover { background-color: var(--danger-color); color: #fff; }
+
+        /* نموذج التسجيل المفتوح */
+        .form-container {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 25px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .form-group { display: flex; flex-direction: column; gap: 8px; }
+        .form-group label { font-size: 13px; color: var(--text-muted); font-weight: 600; }
+        .form-group input, .form-group select, .form-group textarea {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            padding: 10px 15px;
+            border-radius: 8px;
+            color: var(--text-color);
+            outline: none;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--accent-color); }
+
+        .btn-submit {
+            margin-top: 20px;
+            background-color: var(--accent-color);
+            color: #fff;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .btn-submit:hover { opacity: 0.9; }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-muted);
+            font-size: 13px;
+            border-top: 1px solid var(--border-color);
+            background-color: var(--sidebar-bg);
+            margin-top: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- شاشة الحظر والعقوبة المؤقتة -->
+    <div id="banScreen">
+        <div class="ban-box">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <h2>عقوبة مؤقتة - ممنوع الدخول</h2>
+            <p>لقد تم حظرك بسبب مخالفة قوانين الكلان (مثل الشتم أو الإساءة). تم إلغاء وصولك للمشروع مؤقتاً.</p>
+            <div class="timer-badge" id="banTimerDisplay">05:00</div>
+        </div>
+    </div>
+
+    <!-- الشريط الجانبي المحمي بكلمة مرور -->
+    <aside>
+        <div class="sidebar-brand">
+            <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?w=150&auto=format&fit=crop&q=80" alt="MONSTER'• CLAN">
+            <h2>MONSTER'• CLAN</h2>
+        </div>
+        <ul class="sidebar-menu">
+            <div class="menu-category">أقسام الكلان</div>
+            <li id="menu-members" class="active"><a onclick="switchSection('members', this)"><i class="fa-solid fa-users"></i><span>الأعضاء المسجلين</span></a></li>
+            <li id="menu-home"><a onclick="verifySidebarSection('home', this)"><i class="fa-solid fa-crown"></i><span>رئيسية الكلان 🔒</span></a></li>
+            <li id="menu-leaders"><a onclick="verifySidebarSection('leaders', this)"><i class="fa-solid fa-user-shield"></i><span>الزعماء والقادة 🔒</span></a></li>
+            <li id="menu-tournaments"><a onclick="verifySidebarSection('tournaments', this)"><i class="fa-solid fa-gamepad"></i><span>غرفة البطولات 🔒</span></a></li>
+        </ul>
+    </aside>
+
+    <!-- المحتوى الرئيسي -->
+    <div class="main-content">
+        <header>
+            <div class="header-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="searchInput" placeholder="ابحث في سجلات MONSTER'• CLAN...">
+            </div>
+            <div class="user-profile">
+                <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?w=150&auto=format&fit=crop&q=80" alt="MONSTER'• CLAN">
+                <div class="user-info">
+                    <h4>MONSTER'• CLAN</h4>
+                </div>
+            </div>
+        </header>
+
+        <div class="container">
+            
+            <!-- 1. قسم الأعضاء المسجلين -->
+            <div id="section-members" class="content-section active-section">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>سجل أعضاء MONSTER'• CLAN واللاعبين</h3>
+                        <button class="btn-action-delete" onclick="verifyAdminAction('clearAll')"><i class="fa-solid fa-triangle-exclamation"></i> تصفية الكل بالباسورد</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>اسم العضو / اللقب</th>
+                                    <th>الرتبة</th>
+                                    <th>تاريخ الانضمام</th>
+                                    <th>الحالة</th>
+                                    <th>إجراءات الأدمن (محمية)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="membersTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- نموذج التسجيل المفتوح لكل الأعضاء الجدد -->
+                <div class="form-container">
+                    <div class="card-header" style="margin-bottom: 0;">
+                        <h3>تسجيل دخول عضو جديد في MONSTER'• CLAN 🎮</h3>
+                    </div>
+                    <form id="registerForm" onsubmit="handlePublicRegister(event)">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>اسمك أو لقبك في اللعبة (Free Fire)</label>
+                                <input type="text" id="regName" placeholder="اكتب اسمك هنا..." required>
+                            </div>
+                            <div class="form-group">
+                                <label>الرتبة الافتراضية</label>
+                                <select id="regRank" disabled>
+                                    <option value="عضو">عضو الكلان (Member)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-submit"><i class="fa-solid fa-user-plus"></i> تسجيل الدخول والانضمام للكلان</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 2. قسم رئيسية الكلان -->
+            <div id="section-home" class="content-section">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h3>الزعماء</h3>
+                            <div class="number" id="bossCount">0</div>
+                        </div>
+                        <div class="stat-icon boss"><i class="fa-solid fa-chess-king"></i></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h3>القائد</h3>
+                            <div class="number" id="leaderCount">0</div>
+                        </div>
+                        <div class="stat-icon leader"><i class="fa-solid fa-crown"></i></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h3>نواب القائد</h3>
+                            <div class="number" id="coleaderCount">0</div>
+                        </div>
+                        <div class="stat-icon coleader"><i class="fa-solid fa-shield-halved"></i></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h3>إجمالي الأعضاء</h3>
+                            <div class="number" id="totalCount">0</div>
+                        </div>
+                        <div class="stat-icon member"><i class="fa-solid fa-users"></i></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3>لوحة إحصائيات MONSTER'• CLAN</h3>
+                    </div>
+                    <p style="color: var(--text-muted); line-height: 1.8;">
+                        هذه اللوحة خاصة بإدارة الزعماء والقادة لمتابعة نمو وإحصائيات أعضاء الكلان الرسميين.
+                    </p>
+                </div>
+            </div>
+
+            <!-- 3. قسم الزعماء والقادة -->
+            <div id="section-leaders" class="content-section">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>قائمة الزعماء والقادة المعتمدين</h3>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>اسم القائد / الزعيم</th>
+                                    <th>الرتبة</th>
+                                    <th>تاريخ الانضمام</th>
+                                    <th>الحالة</th>
+                                    <th>إجراءات الأدمن</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leadersTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. قسم غرفة البطولات -->
+            <div id="section-tournaments" class="content-section">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>إدارة ونشر البطولات والمباريات الرسمية 🏆</h3>
+                    </div>
+                    <form id="tournamentForm" onsubmit="addTournament(event)">
+                        <div class="form-grid" style="margin-bottom: 20px;">
+                            <div class="form-group">
+                                <label>اسم البطولة أو التحدي</label>
+                                <input type="text" id="tName" placeholder="مثال: بطولة Free Fire الكبرى" required>
+                            </div>
+                            <div class="form-group">
+                                <label>موعد ونظام المباراة</label>
+                                <input type="text" id="tTime" placeholder="مثال: غداً الساعة 9 مساءً" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-submit" style="background-color: var(--success-color);"><i class="fa-solid fa-paper-plane"></i> نشر البطولة للجميع</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3>البطولات والمباريات النشطة حالياً</h3>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                           <thead>
+                                <tr>
+                                    <th>اسم البطولة</th>
+                                    <th>الموعد والنظام</th>
+                                    <th>بواسطة القيادة</th>
+                                    <th>إجراء</th>
+                                </tr>
+                           </thead>
+                           <tbody id="tournamentsTableBody">
+                               <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">لا توجد بطولات منشورة حالياً.</td></tr>
+                           </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <footer>
+            <p>MONSTER'• CLAN &copy; 2026 - جميع الحقوق محفوظة للقيادة العليا.</p>
+        </footer>
+    </div>
+
+    <!-- كود جافاسكريبت المشروع (مفعل ونظيف تماماً) -->
+    <script>
+        const STORAGE_KEY = 'monster_clan_project_clean_v1';
+        const TOURNAMENT_KEY = 'monster_clan_tournaments_clean_v1';
+        const BAN_KEY = 'monster_clan_ban_until';
+        const ADMIN_PASSWORD = '123';
+
+        function checkBanStatus() {
+            const banUntil = localStorage.getItem(BAN_KEY);
+            if (banUntil) {
+                const now = new Date().getTime();
+                if (now < parseInt(banUntil)) {
+                    document.getElementById('banScreen').style.display = 'flex';
+                    startBanCountdown(parseInt(banUntil));
+                } else {
+                    localStorage.removeItem(BAN_KEY);
+                }
+            }
+        }
+
+        function startBanCountdown(targetTime) {
+            const timerInterval = setInterval(() => {
+                const now = new Date().getTime();
+                const distance = targetTime - now;
+
+                if (distance <= 0) {
+                    clearInterval(timerInterval);
+                    localStorage.removeItem(BAN_KEY);
+                    document.getElementById('banScreen').style.display = 'none';
+                    window.location.reload();
+                } else {
+                    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                    document.getElementById('banTimerDisplay').innerText = 
+                        String(minutes).padStart(2, '0') + ":" + String(seconds).padStart(2, '0');
+                }
+            }, 1000);
+        }
+
+        window.switchSection = function(sectionId, element) {
+            document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active-section'));
+            document.getElementById('section-' + sectionId).classList.add('active-section');
+            document.querySelectorAll('.sidebar-menu li').forEach(li => li.classList.remove('active'));
+            if (element) element.parentElement.classList.add('active');
+        };
+
+        window.verifySidebarSection = function(sectionId, element) {
+            let pwd = prompt("أدخل باسورد الأدمن للوصول إلى هذا القسم:");
+            if (pwd === ADMIN_PASSWORD) {
+                switchSection(sectionId, element);
+            } else if (pwd !== null) {
+                alert("كلمة المرور غير صحيحة!");
+            }
+        };
+
+        function getMembers() {
+            const data = localStorage.getItem(STORAGE_KEY);
+            return data ? JSON.parse(data) : []; // يبدأ فارغاً تماماً
+        }
+
+        function saveMembers(members) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(members));
+        }
+
+        function getTournaments() {
+            const data = localStorage.getItem(TOURNAMENT_KEY);
+            return data ? JSON.parse(data) : [];
+        }
+
+        function saveTournaments(tournaments) {
+            localStorage.setItem(TOURNAMENT_KEY, JSON.stringify(tournaments));
+        }
+
+        function renderAll() {
+            const members = getMembers();
+            const membersTbody = document.getElementById('membersTableBody');
+            const leadersTbody = document.getElementById('leadersTableBody');
+            
+            membersTbody.innerHTML = '';
+            leadersTbody.innerHTML = '';
+
+            let bossC = 0, leaderC = 0, coleaderC = 0;
+            let leadersHTML = '', membersHTML = '';
+
+            members.forEach((m, index) => {
+                let badgeClass = 'member', rankIcon = 'fa-user';
+                if (m.rank === 'الزعماء') { bossC++; badgeClass = 'boss'; rankIcon = 'fa-chess-king'; }
+                else if (m.rank === 'القائد') { leaderC++; badgeClass = 'leader'; rankIcon = 'fa-crown'; }
+                else if (m.rank === 'نائب القائد') { coleaderC++; badgeClass = 'coleader'; rankIcon = 'fa-shield-halved'; }
+
+                const row = `
+                    <tr>
+                        <td><strong>${escapeHtml(m.name)}</strong></td>
+                        <td><span class="rank-badge ${badgeClass}"><i class="fa-solid ${rankIcon}"></i> ${escapeHtml(m.rank)}</span></td>
+                        <td>${escapeHtml(m.date)}</td>
+                        <td><span style="color: var(--success-color); font-size: 13px;"><i class="fa-solid fa-circle-dot" style="font-size: 8px;"></i> مسجل</span></td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="btn-action-edit" onclick="verifyAdminAction('edit', ${index}, '${escapeHtml(m.name)}')"><i class="fa-solid fa-pen-to-square"></i> تغيير</button>
+                                <button class="btn-action-ban" onclick="verifyAdminAction('ban', ${index}, '${escapeHtml(m.name)}')"><i class="fa-solid fa-ban"></i> بلوك</button>
+                                <button class="btn-action-delete" onclick="verifyAdminAction('delete', ${index}, '${escapeHtml(m.name)}')"><i class="fa-solid fa-trash-can"></i> حذف</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                membersHTML += row;
+                if (['الزعماء', 'القائد', 'نائب القائد'].includes(m.rank)) leadersHTML += row;
+            });
+
+            membersTbody.innerHTML = membersHTML || `<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">لا توجد أسماء مسجلة حالياً. ابدأ بتسجيل الأعضاء الجدد!</td></tr>`;
+            leadersTbody.innerHTML = leadersHTML || `<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">لا توجد قيادات مسجلة حالياً.</td></tr>`;
+
+            document.getElementById('bossCount').innerText = bossC;
+            document.getElementById('leaderCount').innerText = leaderC;
+            document.getElementById('coleaderCount').innerText = coleaderC;
+            document.getElementById('totalCount').innerText = members.length;
+
+            renderTournamentsTable();
+        }
+
+        function renderTournamentsTable() {
+            const tournaments = getTournaments();
+            const tbody = document.getElementById('tournamentsTableBody');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+
+            if (tournaments.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">لا توجد بطولات منشورة حالياً.</td></tr>`;
+                return;
+            }
+
+            tournaments.forEach((t, index) => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${escapeHtml(t.name)}</strong></td>
+                        <td>${escapeHtml(t.time)}</td>
+                        <td><span class="rank-badge boss"><i class="fa-solid fa-crown"></i> MONSTER'• CLAN</span></td>
+                        <td><button class="btn-action-delete" onclick="verifyAdminAction('deleteTournament', ${index})"><i class="fa-solid fa-trash-can"></i> حذف</button></td>
+                    </tr>
+                `;
+            });
+        }
+
+        function escapeHtml(text) {
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        window.verifyAdminAction = function(actionType, targetIndex = null, targetName = '') {
+            let pwd = prompt("أدخل باسورد الأدمن لتنفيذ الإجراء:");
+            if (pwd === null) return;
+
+            if (pwd === ADMIN_PASSWORD) {
+                const members = getMembers();
+                if (actionType === 'delete') {
+                    members.splice(targetIndex, 1);
+                    saveMembers(members);
+                    renderAll();
+                    alert(`تم حذف العضو "${targetName}" بنجاح.`);
+                } else if (actionType === 'edit') {
+                    let newName = prompt("أدخل الاسم الجديد:", targetName);
+                    if (newName !== null && newName.trim() !== '') {
+                        let newRank = prompt("أدخل الرتبة الجديدة (مثال: عضو، الزعماء، القائد، نائب القائد):", members[targetIndex].rank);
+                        if (newRank !== null && newRank.trim() !== '') {
+                            members[targetIndex].name = newName.trim();
+                            members[targetIndex].rank = newRank.trim();
+                            saveMembers(members);
+                            renderAll();
+                            alert("تم تعديل البيانات وتغييرها بنجاح.");
+                        }
+                    }
+                } else if (actionType === 'ban') {
+                    if (confirm(`هل أنت متأكد من إعطاء بلوك وعقوبة (5 دقائق) للعضو "${targetName}"؟`)) {
+                        const banDuration = 5 * 60 * 1000;
+                        const banUntilTime = new Date().getTime() + banDuration;
+                        localStorage.setItem(BAN_KEY, banUntilTime);
+                        alert(`تم تطبيق عقوبة البلوك على "${targetName}" بنجاح لمدة 5 دقائق.`);
+                    }
+                } else if (actionType === 'clearAll') {
+                    if (confirm("هل تريد تصفية ومسح جميع الأعضاء؟")) {
+                        localStorage.removeItem(STORAGE_KEY);
+                        renderAll();
+                        alert("تمت تصفية القائمة بنجاح.");
+                    }
+                } else if (actionType === 'deleteTournament') {
+                    const tournaments = getTournaments();
+                    tournaments.splice(targetIndex, 1);
+                    saveTournaments(tournaments);
+                    renderTournamentsTable();
+                    alert("تم حذف البطولة بنجاح.");
+                }
+            } else {
+                alert("كلمة المرور غير صحيحة! هذا الإجراء مخصص للأدمن فقط.");
+            }
+        };
+
+        window.handlePublicRegister = function(e) {
+            e.preventDefault();
+            const nameInput = document.getElementById('regName');
+            const name = nameInput.value.trim();
+
+            if (name) {
+                const now = new Date();
+                const dateStr = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')}`;
+                const members = getMembers();
+                
+                members.unshift({ name, rank: "عضو", date: dateStr });
+                saveMembers(members);
+                renderAll();
+                nameInput.value = '';
+                alert(`أهلاً بك يا ${name}! تم تسجيل دخولك بنجاح كعضو رسمي في MONSTER'• CLAN 🎮`);
+            }
+        };
+
+        window.addTournament = function(e) {
+            e.preventDefault();
+            const name = document.getElementById('tName').value.trim();
+            const time = document.getElementById('tTime').value.trim();
+
+            if (name && time) {
+                const tournaments = getTournaments();
+                tournaments.unshift({ name, time });
+                saveTournaments(tournaments);
+                renderTournamentsTable();
+                document.getElementById('tName').value = '';
+                document.getElementById('tTime').value = '';
+                alert("تم نشر البطولة بنجاح في الغرفة.");
+            }
+        };
+
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const term = e.target.value.toLowerCase();
+            document.querySelectorAll('tbody tr').forEach(row => {
+                row.style.display = row.innerText.toLowerCase().includes(term) ? '' : 'none';
+            });
+        });
+
+        window.onload = function() {
+            checkBanStatus();
+            renderAll();
+        };
+    </script>
+</body>
+</html>
